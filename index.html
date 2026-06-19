@@ -2,31 +2,117 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>料金表メーカー</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Creator Tools</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
   :root {
     --ui-bg: #14161c;
     --ui-panel: #1e2129;
+    --ui-panel2: #191c23;
     --ui-line: #2f333d;
     --ui-text: #e8e9ec;
     --ui-muted: #8b909b;
     --ui-accent: #4f7cff;
+    --ui-ok: #2ecc71;
+    --ui-warn: #ff5d5d;
+    --sidebar-w: 270px;
   }
   * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
   body {
     font-family:-apple-system,"Hiragino Kaku Gothic ProN","Noto Sans JP",sans-serif;
-    background:var(--ui-bg); color:var(--ui-text); line-height:1.5; padding-bottom:90px;
+    background:var(--ui-bg); color:var(--ui-text); line-height:1.5;
   }
-  .wrap { max-width:780px; margin:0 auto; padding:0 14px; }
 
-  header { padding:22px 0 14px; text-align:center; }
-  header h1 { font-size:20px; font-weight:800; letter-spacing:.04em; }
-  header h1 .dot { color:var(--ui-accent); }
-  header p { font-size:11px; color:var(--ui-muted); margin-top:3px; letter-spacing:.14em; }
+  /* ===== Top bar ===== */
+  .topbar {
+    position:sticky; top:0; z-index:40;
+    display:flex; align-items:center; gap:12px;
+    padding:calc(12px + env(safe-area-inset-top)) 16px 12px;
+    background:rgba(20,22,28,.92); backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--ui-line);
+  }
+  .hamburger {
+    width:40px; height:40px; border-radius:10px; border:1px solid var(--ui-line);
+    background:var(--ui-panel2); cursor:pointer; flex-shrink:0;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px;
+  }
+  .hamburger span { width:18px; height:2px; background:var(--ui-text); border-radius:2px; transition:.2s; }
+  .topbar .tb-title { font-size:16px; font-weight:800; letter-spacing:.02em; }
+  .topbar .tb-title .dot { color:var(--ui-accent); }
 
-  /* ===== Preview (output) ===== */
+  /* ===== Sidebar ===== */
+  .overlay {
+    position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:49;
+    opacity:0; pointer-events:none; transition:opacity .25s;
+  }
+  .overlay.show { opacity:1; pointer-events:auto; }
+  .sidebar {
+    position:fixed; top:0; left:0; height:100%; width:var(--sidebar-w);
+    background:var(--ui-panel); border-right:1px solid var(--ui-line); z-index:50;
+    transform:translateX(-100%); transition:transform .25s ease;
+    display:flex; flex-direction:column;
+    padding-top:env(safe-area-inset-top);
+  }
+  .sidebar.open { transform:translateX(0); }
+  .sb-head { padding:20px 18px 16px; border-bottom:1px solid var(--ui-line); }
+  .sb-head h1 { font-size:17px; font-weight:800; }
+  .sb-head h1 .dot { color:var(--ui-accent); }
+  .sb-head p { font-size:11px; color:var(--ui-muted); margin-top:3px; letter-spacing:.12em; }
+  .sb-nav { padding:12px 10px; flex:1; overflow-y:auto; }
+  .sb-label { font-size:10px; color:var(--ui-muted); letter-spacing:.1em; font-weight:700; margin:8px 8px 6px; }
+  .sb-item {
+    display:flex; align-items:center; gap:12px; width:100%;
+    padding:13px 14px; border-radius:10px; border:none; cursor:pointer;
+    background:transparent; color:var(--ui-text); font-size:15px; font-weight:600;
+    font-family:inherit; text-align:left; margin-bottom:2px;
+  }
+  .sb-item .ic { width:22px; height:22px; flex-shrink:0; opacity:.85; }
+  .sb-item.active { background:var(--ui-accent); color:#fff; }
+  .sb-item.active .ic { opacity:1; }
+  .sb-foot { padding:14px 18px; border-top:1px solid var(--ui-line); font-size:11px; color:var(--ui-muted); }
+
+  /* ===== Views ===== */
+  .view { display:none; }
+  .view.active { display:block; }
+  .wrap { max-width:780px; margin:0 auto; padding:18px 14px 100px; }
+  .view-title { font-size:20px; font-weight:800; letter-spacing:.02em; margin-bottom:4px; }
+  .view-sub { font-size:12px; color:var(--ui-muted); margin-bottom:18px; }
+
+  /* shared card */
+  .card { background:var(--ui-panel); border:1px solid var(--ui-line); border-radius:14px; padding:16px; margin-bottom:18px; }
+  .card .ttl { font-size:13px; font-weight:800; margin-bottom:14px; }
+  .fld { margin-top:14px; }
+  .fld:first-child { margin-top:0; }
+  .fld label { display:block; font-size:11px; color:var(--ui-muted); margin-bottom:5px; font-weight:700; letter-spacing:.04em; }
+  .inp, textarea.inp, select.inp {
+    width:100%; border:1px solid var(--ui-line); border-radius:9px; padding:11px 12px;
+    font-size:15px; font-family:inherit; background:var(--ui-panel2); color:var(--ui-text);
+  }
+  .inp:focus { outline:none; border-color:var(--ui-accent); }
+  textarea.inp { min-height:120px; resize:vertical; line-height:1.6; }
+  .help { font-size:11px; color:var(--ui-muted); margin-top:6px; line-height:1.55; }
+  .btn {
+    border-radius:10px; padding:12px 14px; font-size:14px; font-weight:800; border:none;
+    cursor:pointer; font-family:inherit; letter-spacing:.02em;
+    background:var(--ui-accent); color:#fff;
+  }
+  .btn.sec { background:var(--ui-panel2); color:var(--ui-text); border:1px solid var(--ui-line); }
+  .btn.full { width:100%; }
+  .btn:active { opacity:.85; }
+  .btns { display:flex; gap:8px; flex-wrap:wrap; margin-top:14px; }
+  .btns .btn { flex:1; min-width:120px; }
+
+  .toast {
+    position:fixed; bottom:96px; left:50%; transform:translateX(-50%) translateY(15px);
+    background:#fff; color:#14161c; padding:11px 20px; border-radius:30px;
+    font-size:13px; font-weight:800; opacity:0; pointer-events:none; transition:all .3s; z-index:100;
+  }
+  .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+
+  /* ========================================================= */
+  /* ===== PRICE LIST MAKER (view 1) ===== */
+  /* ========================================================= */
   .preview-shell { margin-bottom:22px; }
   .canvas {
     aspect-ratio:16/9; width:100%; border-radius:14px; overflow:hidden;
@@ -61,29 +147,17 @@
   .ptext .prow .sep { opacity:.5; margin:0 .25em; }
   .ptext .empty { color:rgba(255,255,255,.4); font-size:14px; }
 
-  /* ===== Theme picker ===== */
   .section-label { font-size:11px; color:var(--ui-muted); letter-spacing:.08em; font-weight:700; margin:0 2px 9px; }
-  .themes {
-    display:flex; gap:10px; overflow-x:auto; padding:2px 2px 8px; margin-bottom:22px;
-    -webkit-overflow-scrolling:touch;
-  }
+  .themes { display:flex; gap:10px; overflow-x:auto; padding:2px 2px 8px; margin-bottom:22px; -webkit-overflow-scrolling:touch; }
   .themes::-webkit-scrollbar { height:0; }
-  .theme-chip {
-    flex-shrink:0; width:64px; height:42px; border-radius:10px; cursor:pointer;
-    border:2px solid transparent; position:relative; overflow:hidden;
-  }
+  .theme-chip { flex-shrink:0; width:64px; height:42px; border-radius:10px; cursor:pointer; border:2px solid transparent; position:relative; overflow:hidden; }
   .theme-chip.active { border-color:#fff; box-shadow:0 0 0 2px var(--ui-accent); }
-  .theme-chip span { position:absolute; bottom:2px; left:0; width:100%; text-align:center;
-    font-size:8px; color:#fff; text-shadow:0 1px 2px rgba(0,0,0,.8); font-weight:700; }
-
-  /* ===== Input ===== */
-  .card { background:var(--ui-panel); border:1px solid var(--ui-line); border-radius:14px; padding:16px; margin-bottom:18px; }
-  .card .ttl { font-size:13px; font-weight:800; margin-bottom:14px; }
+  .theme-chip span { position:absolute; bottom:2px; left:0; width:100%; text-align:center; font-size:8px; color:#fff; text-shadow:0 1px 2px rgba(0,0,0,.8); font-weight:700; }
 
   .drop {
     border:2px dashed var(--ui-line); border-radius:12px; aspect-ratio:4/3;
     display:flex; flex-direction:column; align-items:center; justify-content:center;
-    cursor:pointer; background:#191c23; overflow:hidden; position:relative;
+    cursor:pointer; background:var(--ui-panel2); overflow:hidden; position:relative;
   }
   .drop .ph { color:var(--ui-muted); font-size:12px; text-align:center; }
   .drop .ph svg { width:30px; height:30px; opacity:.4; margin-bottom:6px; }
@@ -91,164 +165,277 @@
   .drop.has img { display:block; width:100%; height:100%; object-fit:cover; }
   .drop.has .ph { display:none; }
 
-  .fld { margin-top:14px; }
-  .fld label { display:block; font-size:11px; color:var(--ui-muted); margin-bottom:5px; font-weight:700; letter-spacing:.04em; }
-  .inp {
-    width:100%; border:1px solid var(--ui-line); border-radius:9px; padding:11px 12px;
-    font-size:15px; font-family:inherit; background:#191c23; color:var(--ui-text);
-  }
-  .inp:focus { outline:none; border-color:var(--ui-accent); }
-
   .tier-row { display:flex; gap:8px; margin-bottom:8px; }
   .tier-row .inp { flex:1; }
-  .tier-row .del-tier {
-    width:42px; flex-shrink:0; border:1px solid var(--ui-line); border-radius:9px;
-    background:#191c23; color:var(--ui-muted); font-size:16px; cursor:pointer;
-  }
-  .add-tier {
-    width:100%; padding:9px; border:1px dashed var(--ui-line); border-radius:9px;
-    background:transparent; color:var(--ui-muted); font-size:13px; font-weight:700;
-    cursor:pointer; font-family:inherit; margin-top:2px;
-  }
+  .tier-row .del-tier { width:42px; flex-shrink:0; border:1px solid var(--ui-line); border-radius:9px; background:var(--ui-panel2); color:var(--ui-muted); font-size:16px; cursor:pointer; }
+  .add-tier { width:100%; padding:9px; border:1px dashed var(--ui-line); border-radius:9px; background:transparent; color:var(--ui-muted); font-size:13px; font-weight:700; cursor:pointer; font-family:inherit; margin-top:2px; }
 
-  .btn-primary {
-    width:100%; margin-top:16px; background:var(--ui-accent); color:#fff; border:none;
-    border-radius:10px; padding:14px; font-size:15px; font-weight:800; letter-spacing:.03em;
-    cursor:pointer; font-family:inherit;
-  }
-  .btn-primary:active { opacity:.85; }
-
-  /* template chips */
   .tpl-actions { display:flex; gap:8px; margin-bottom:12px; }
-  .tpl-actions button {
-    flex:1; padding:11px; border-radius:9px; font-size:13px; font-weight:800; cursor:pointer; font-family:inherit;
-    border:1px solid var(--ui-line); background:#191c23; color:var(--ui-text);
-  }
-  .tpl-actions button.primary { background:var(--ui-accent); border-color:var(--ui-accent); color:#fff; }
   .tpl-list { display:flex; flex-direction:column; gap:8px; }
-  .tpl-empty { color:var(--ui-muted); font-size:12px; text-align:center; padding:4px 8px; }
-  .tpl-item {
-    display:flex; align-items:center; gap:10px; padding:8px 10px; border:1px solid var(--ui-line);
-    border-radius:10px; background:#191c23;
-  }
+  .tpl-empty, .saved-empty { color:var(--ui-muted); font-size:12px; text-align:center; padding:8px; }
+  .tpl-item { display:flex; align-items:center; gap:10px; padding:8px 10px; border:1px solid var(--ui-line); border-radius:10px; background:var(--ui-panel2); }
   .tpl-swatch { width:34px; height:24px; border-radius:6px; flex-shrink:0; }
   .tpl-info { flex:1; min-width:0; }
   .tpl-name { font-size:13px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .tpl-sub { font-size:11px; color:var(--ui-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .tpl-btns { display:flex; gap:4px; flex-shrink:0; }
-  .tpl-btns button {
-    height:30px; padding:0 10px; border-radius:7px; border:1px solid var(--ui-line);
-    background:#14161c; color:var(--ui-muted); cursor:pointer; font-size:12px; font-weight:700; font-family:inherit;
-  }
+  .tpl-btns button { height:30px; padding:0 10px; border-radius:7px; border:1px solid var(--ui-line); background:var(--ui-bg); color:var(--ui-muted); cursor:pointer; font-size:12px; font-weight:700; font-family:inherit; }
   .tpl-btns button.apply { color:var(--ui-accent); border-color:var(--ui-accent); }
 
-  .saved-empty { color:var(--ui-muted); font-size:12px; text-align:center; padding:8px; }
-  .saved-item {
-    display:flex; align-items:center; gap:10px; padding:8px; border:1px solid var(--ui-line);
-    border-radius:10px; margin-bottom:8px; background:#191c23;
-  }
+  .saved-item { display:flex; align-items:center; gap:10px; padding:8px; border:1px solid var(--ui-line); border-radius:10px; margin-bottom:8px; background:var(--ui-panel2); }
   .saved-item img { width:40px; height:40px; border-radius:7px; object-fit:cover; background:#222; flex-shrink:0; }
   .saved-item .si-info { flex:1; min-width:0; }
   .saved-item .si-name { font-size:13px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .saved-item .si-sub { font-size:11px; color:var(--ui-muted); }
   .saved-item .si-btns { display:flex; gap:4px; }
-  .saved-item button {
-    width:30px; height:30px; border-radius:7px; border:1px solid var(--ui-line);
-    background:#14161c; color:var(--ui-muted); cursor:pointer; font-size:13px;
-  }
-  .saved-item button.active { color:var(--ui-accent); border-color:var(--ui-accent); }
+  .saved-item button { height:30px; padding:0 10px; border-radius:7px; border:1px solid var(--ui-line); background:var(--ui-bg); color:var(--ui-muted); cursor:pointer; font-size:12px; font-weight:700; font-family:inherit; }
 
-  .bar {
+  .pl-bar {
     position:fixed; bottom:0; left:0; width:100%; background:rgba(20,22,28,.94);
     backdrop-filter:blur(10px); border-top:1px solid var(--ui-line);
-    padding:12px 14px calc(12px + env(safe-area-inset-bottom)); display:flex; gap:10px; z-index:50;
+    padding:12px 14px calc(12px + env(safe-area-inset-bottom)); display:flex; gap:10px; z-index:30;
   }
-  .bar button { flex:1; border-radius:10px; padding:13px; font-size:14px; font-weight:800; border:none; cursor:pointer; font-family:inherit; }
-  .bar .b-new { background:var(--ui-line); color:var(--ui-text); }
-  .bar .b-save { background:var(--ui-accent); color:#fff; }
+  .pl-bar button { flex:1; border-radius:10px; padding:13px; font-size:14px; font-weight:800; border:none; cursor:pointer; font-family:inherit; }
+  .pl-bar .b-new { background:var(--ui-line); color:var(--ui-text); }
+  .pl-bar .b-save { background:var(--ui-accent); color:#fff; }
 
-  .toast {
-    position:fixed; bottom:96px; left:50%; transform:translateX(-50%) translateY(15px);
-    background:#fff; color:#14161c; padding:11px 20px; border-radius:30px;
-    font-size:13px; font-weight:800; opacity:0; pointer-events:none; transition:all .3s; z-index:100;
+  /* ========================================================= */
+  /* ===== X POST MAKER (view 2) ===== */
+  /* ========================================================= */
+  .x-tplbar { display:flex; gap:8px; align-items:center; margin-bottom:12px; }
+  .x-tplbar select { flex:1; }
+
+  .quick-inserts { display:flex; gap:6px; flex-wrap:wrap; margin-top:10px; }
+  .quick-inserts button {
+    padding:6px 11px; border-radius:8px; border:1px solid var(--ui-line);
+    background:var(--ui-panel2); color:var(--ui-text); font-size:13px; cursor:pointer; font-family:inherit;
   }
-  .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+  .quick-inserts button:active { border-color:var(--ui-accent); }
+
+  .var-block { margin-top:12px; }
+  .var-block .vb-label { font-size:12px; font-weight:700; color:var(--ui-accent); margin-bottom:5px; }
+  .var-block textarea { min-height:90px; }
+
+  .gen-stats { font-size:12px; color:var(--ui-muted); margin-top:12px; }
+
+  .out-list { display:flex; flex-direction:column; gap:10px; margin-top:14px; }
+  .out-card { border:1px solid var(--ui-line); border-radius:12px; padding:12px; background:var(--ui-panel2); }
+  .out-meta { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
+  .out-badge { font-size:11px; font-weight:800; color:var(--ui-muted); background:var(--ui-bg); padding:2px 8px; border-radius:20px; }
+  .out-count { font-size:12px; font-weight:700; color:var(--ui-muted); }
+  .out-count.over { color:var(--ui-warn); }
+  .out-text { font-size:14px; white-space:pre-wrap; word-break:break-word; line-height:1.6; }
+  .out-actions { display:flex; gap:8px; margin-top:10px; }
+  .out-actions button {
+    flex:1; padding:9px; border-radius:8px; font-size:13px; font-weight:700; cursor:pointer; font-family:inherit;
+  }
+  .out-actions .a-copy { background:var(--ui-panel); border:1px solid var(--ui-line); color:var(--ui-text); }
+  .out-actions .a-post { background:var(--ui-accent); border:none; color:#fff; }
+  .out-empty { color:var(--ui-muted); font-size:13px; text-align:center; padding:20px; }
+
+  .char-live { font-size:12px; font-weight:700; margin-top:6px; }
+  .char-live .over { color:var(--ui-warn); }
 </style>
 </head>
 <body>
-<div class="wrap">
-  <header>
-    <h1>料金表メーカー<span class="dot">.</span></h1>
-    <p>PRICE LIST MAKER</p>
-  </header>
 
-  <div class="preview-shell">
-    <div class="canvas" id="canvas">
-      <div class="canvas-inner">
-        <div class="pimg" id="pImg"><div class="noimg">画像を選択</div></div>
-        <div class="ptext">
-          <div class="eyebrow" id="pEyebrow" style="display:none"></div>
-          <div class="pname" id="pName">商品名</div>
-          <div class="plist" id="pList"><div class="empty">価格を追加してください</div></div>
+<!-- ===== Top bar ===== -->
+<div class="topbar">
+  <button class="hamburger" id="hamburger" aria-label="メニュー"><span></span><span></span><span></span></button>
+  <div class="tb-title" id="tbTitle">料金表メーカー<span class="dot">.</span></div>
+</div>
+
+<!-- ===== Sidebar ===== -->
+<div class="overlay" id="overlay"></div>
+<nav class="sidebar" id="sidebar">
+  <div class="sb-head">
+    <h1>Creator Tools<span class="dot">.</span></h1>
+    <p>CREATOR TOOLKIT</p>
+  </div>
+  <div class="sb-nav">
+    <div class="sb-label">ツール</div>
+    <button class="sb-item active" data-view="viewPrice">
+      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M8 14h3"/></svg>
+      料金表メーカー
+    </button>
+    <button class="sb-item" data-view="viewX">
+      <svg class="ic" viewBox="0 0 24 24" fill="currentColor"><path d="M18.9 1.6h3.3l-7.2 8.2 8.5 11.2h-6.7l-5.2-6.8-6 6.8H1.5l7.7-8.8L1 1.6h6.8l4.7 6.2 6.4-6.2Zm-1.2 17.7h1.8L7.1 3.5H5.2l12.5 15.8Z"/></svg>
+      Xポスト作成
+    </button>
+  </div>
+  <div class="sb-foot">非エンジニアの実用ツール</div>
+</nav>
+
+<!-- ========================================================= -->
+<!-- ===== VIEW 1: PRICE LIST MAKER ===== -->
+<!-- ========================================================= -->
+<div class="view active" id="viewPrice">
+  <div class="wrap">
+    <div class="preview-shell">
+      <div class="canvas" id="plCanvas">
+        <div class="canvas-inner">
+          <div class="pimg" id="pImg"><div class="noimg">画像を選択</div></div>
+          <div class="ptext">
+            <div class="eyebrow" id="pEyebrow" style="display:none"></div>
+            <div class="pname" id="pName">商品名</div>
+            <div class="plist" id="pList"><div class="empty">価格を追加してください</div></div>
+          </div>
         </div>
       </div>
     </div>
-  </div>
 
-  <div class="section-label">背景テーマ</div>
-  <div class="themes" id="themes"></div>
+    <div class="section-label">背景テーマ</div>
+    <div class="themes" id="themes"></div>
 
-  <div class="card">
-    <div class="ttl">テンプレ（枠の保存）</div>
-    <div class="tpl-actions">
-      <button class="primary" id="saveTplBtn">＋ 今の枠をテンプレ保存</button>
-    </div>
-    <div class="tpl-list" id="tplList"><div class="tpl-empty">テンプレ未登録。背景テーマ・サブ見出し・価格ラベルを設定して保存できます</div></div>
-  </div>
-
-  <div class="card">
-    <div class="ttl">商品情報</div>
-
-    <div class="drop" id="drop">
-      <div class="ph">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
-        商品画像を選択
+    <div class="card">
+      <div class="ttl">テンプレ（枠の保存）</div>
+      <div class="tpl-actions">
+        <button class="btn full" id="saveTplBtn">＋ 今の枠をテンプレ保存</button>
       </div>
-      <img id="preview">
-    </div>
-    <input type="file" id="fileInput" accept="image/*" hidden>
-
-    <div class="fld">
-      <label>サブ見出し（任意・例：JAPANESE High Quality）</label>
-      <input type="text" class="inp" id="inEyebrow" placeholder="JAPANESE High Quality">
-    </div>
-    <div class="fld">
-      <label>商品名</label>
-      <input type="text" class="inp" id="inName" placeholder="Freeze">
+      <div class="tpl-list" id="tplList"><div class="tpl-empty">テンプレ未登録。背景テーマ・サブ見出し・価格ラベルを設定して保存できます</div></div>
     </div>
 
-    <div class="fld">
-      <label>価格（ラベル と 金額）</label>
-      <div id="tiers"></div>
-      <button class="add-tier" id="addTier">＋ 価格を追加</button>
+    <div class="card">
+      <div class="ttl">商品情報</div>
+      <div class="drop" id="drop">
+        <div class="ph">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+          商品画像を選択
+        </div>
+        <img id="preview">
+      </div>
+      <input type="file" id="fileInput" accept="image/*" hidden>
+
+      <div class="fld">
+        <label>サブ見出し（任意・例：JAPANESE High Quality）</label>
+        <input type="text" class="inp" id="inEyebrow" placeholder="JAPANESE High Quality">
+      </div>
+      <div class="fld">
+        <label>商品名</label>
+        <input type="text" class="inp" id="inName" placeholder="Freeze">
+      </div>
+      <div class="fld">
+        <label>価格（ラベル と 金額）</label>
+        <div id="tiers"></div>
+        <button class="add-tier" id="addTier">＋ 価格を追加</button>
+      </div>
+      <button class="btn full" id="addBtn" style="margin-top:16px;">この商品を保存</button>
     </div>
 
-    <button class="btn-primary" id="addBtn">この商品を保存</button>
+    <div class="card">
+      <div class="ttl">保存した商品</div>
+      <div id="savedList"><div class="saved-empty">まだありません。プレビューを見ながら作成 →「保存」</div></div>
+    </div>
   </div>
-
-  <div class="card">
-    <div class="ttl">保存した商品</div>
-    <div id="savedList"><div class="saved-empty">まだありません。プレビューを見ながら作成 →「保存」</div></div>
+  <div class="pl-bar">
+    <button class="b-new" id="newBtn">新規入力</button>
+    <button class="b-save" id="saveImgBtn">画像で保存</button>
   </div>
 </div>
 
-<div class="bar">
-  <button class="b-new" id="newBtn">新規入力</button>
-  <button class="b-save" id="saveImgBtn">画像で保存</button>
+<!-- ========================================================= -->
+<!-- ===== VIEW 2: X POST MAKER ===== -->
+<!-- ========================================================= -->
+<div class="view" id="viewX">
+  <div class="wrap">
+    <div class="view-title">Xポスト作成</div>
+    <div class="view-sub">テンプレに {{変数}} を入れ、候補を組み合わせて投稿文を量産。コピー or そのままXへ。</div>
+
+    <div class="card">
+      <div class="ttl">テンプレート</div>
+      <div class="x-tplbar">
+        <select class="inp" id="xTplSelect"></select>
+      </div>
+      <div class="btns" style="margin-top:0;">
+        <button class="btn sec" id="xSaveTpl">保存</button>
+        <button class="btn sec" id="xNewTpl">新規</button>
+        <button class="btn sec" id="xDelTpl">削除</button>
+      </div>
+      <div class="btns" style="margin-top:8px;">
+        <button class="btn sec" id="xImportBtn">JSON読込</button>
+        <button class="btn sec" id="xExportBtn">JSON書出</button>
+        <input type="file" id="xImportFile" accept="application/json" hidden>
+      </div>
+
+      <div class="fld">
+        <label>本文（{{target}} などの変数を使える）</label>
+        <textarea class="inp" id="xTplText" placeholder="{{target}}へ。&#10;{{pain}}&#10;&#10;{{cta}}&#10;{{tag}}"></textarea>
+        <div class="char-live" id="xCharLive"></div>
+      </div>
+
+      <div class="quick-inserts" id="xQuickInserts"></div>
+      <div class="help">
+        {{buzz}} を入れると、下のバズワード辞書からランダムで1語挿入されます。<br>
+        変数は本文から自動で読み取って、下に候補入力欄が出ます。
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="ttl">変数の候補</div>
+      <div id="xVarsArea"><div class="help">本文に {{変数}} を入れると、ここに候補欄が出ます。1行=1候補。</div></div>
+    </div>
+
+    <div class="card">
+      <div class="ttl">バズワード辞書 & 生成設定</div>
+      <div class="fld">
+        <label>バズワード辞書（1行=1フレーズ・{{buzz}}用）</label>
+        <textarea class="inp" id="xBuzz" placeholder="最短で&#10;9割が知らない&#10;今すぐ&#10;ガチで&#10;これだけでOK" style="min-height:90px;"></textarea>
+      </div>
+      <div class="fld">
+        <label>生成数（最大）</label>
+        <input type="number" class="inp" id="xMaxGen" min="1" max="200" value="20">
+      </div>
+      <label style="margin-top:14px; display:flex; align-items:center; gap:8px; font-size:13px; color:var(--ui-text); cursor:pointer;">
+        <input type="checkbox" id="xDedupe" checked style="width:auto;"> 重複した文を除外する
+      </label>
+    </div>
+
+    <div class="btns">
+      <button class="btn full" id="xGenBtn">生成</button>
+      <button class="btn sec" id="xShuffleBtn">シャッフル生成</button>
+      <button class="btn sec" id="xCopyAllBtn">全部コピー</button>
+    </div>
+    <div class="gen-stats" id="xStats"></div>
+
+    <div class="out-list" id="xOutput"><div class="out-empty">「生成」を押すと投稿文がここに出ます</div></div>
+  </div>
 </div>
+
 <div class="toast" id="toast"></div>
 
 <script>
+  const $ = id => document.getElementById(id);
+  let tt;
+  function toast(m){ const t=$('toast'); t.textContent=m; t.classList.add('show'); clearTimeout(tt); tt=setTimeout(()=>t.classList.remove('show'),1700); }
+  function esc(s){ return (s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+  /* ============================================================ */
+  /* ===== App shell: sidebar + view switching ===== */
+  /* ============================================================ */
+  const VIEW_TITLES = {
+    viewPrice: '料金表メーカー',
+    viewX: 'Xポスト作成'
+  };
+
+  function openSidebar(){ $('sidebar').classList.add('open'); $('overlay').classList.add('show'); }
+  function closeSidebar(){ $('sidebar').classList.remove('open'); $('overlay').classList.remove('show'); }
+  $('hamburger').onclick = openSidebar;
+  $('overlay').onclick = closeSidebar;
+
+  function switchView(id){
+    document.querySelectorAll('.view').forEach(v => v.classList.toggle('active', v.id === id));
+    document.querySelectorAll('.sb-item').forEach(b => b.classList.toggle('active', b.dataset.view === id));
+    $('tbTitle').innerHTML = (VIEW_TITLES[id] || '') + '<span class="dot">.</span>';
+    closeSidebar();
+    window.scrollTo({top:0});
+  }
+  document.querySelectorAll('.sb-item').forEach(b => {
+    b.onclick = () => switchView(b.dataset.view);
+  });
+
+  /* ============================================================ */
+  /* ===== PRICE LIST MAKER ===== */
+  /* ============================================================ */
   const THEMES = [
     { name:'Neon',   css:'radial-gradient(120% 130% at 100% 20%, #3a1d6e 0%, #1b0f3a 35%, #050208 75%), radial-gradient(80% 90% at 85% 55%, rgba(23,105,255,.33) 0%, transparent 60%)' },
     { name:'Aurora', css:'radial-gradient(110% 120% at 90% 15%, rgba(0,210,255,.27) 0%, transparent 55%), radial-gradient(120% 120% at 80% 85%, rgba(122,0,255,.33) 0%, transparent 60%), #060814' },
@@ -267,8 +454,6 @@
   let savedItems = [];
   let activeIndex = -1;
 
-  const $ = id => document.getElementById(id);
-
   const themesEl = $('themes');
   THEMES.forEach((t, i) => {
     const c = document.createElement('div');
@@ -281,7 +466,7 @@
 
   function applyTheme() {
     const t = THEMES[currentTheme];
-    const root = $('canvas');
+    const root = $('plCanvas');
     root.style.background = t.css;
     const dark = !!t.light;
     root.querySelector('.pname').style.color = dark ? '#14161c' : '#fff';
@@ -327,12 +512,7 @@
       label: r.querySelector('.ti-label').value.trim(),
       value: r.querySelector('.ti-value').value.trim()
     })).filter(t => t.label || t.value);
-    return {
-      eyebrow: $('inEyebrow').value.trim(),
-      name: $('inName').value.trim(),
-      image: currentImage,
-      tiers
-    };
+    return { eyebrow: $('inEyebrow').value.trim(), name: $('inName').value.trim(), image: currentImage, tiers };
   }
 
   function livePreview() { activeIndex = -1; renderPreview(getLiveData()); }
@@ -343,19 +523,13 @@
     if (d.eyebrow) {
       eb.style.display = 'block';
       const parts = d.eyebrow.split(' ');
-      if (parts.length > 1) {
-        eb.innerHTML = `${esc(parts[0])}<span class="sub">${esc(parts.slice(1).join(' '))}</span>`;
-      } else { eb.textContent = d.eyebrow; }
+      if (parts.length > 1) eb.innerHTML = `${esc(parts[0])}<span class="sub">${esc(parts.slice(1).join(' '))}</span>`;
+      else eb.textContent = d.eyebrow;
     } else { eb.style.display = 'none'; }
     $('pName').textContent = d.name || '商品名';
     const pl = $('pList');
-    if (d.tiers.length === 0) {
-      pl.innerHTML = `<div class="empty">価格を追加してください</div>`;
-    } else {
-      pl.innerHTML = d.tiers.map(t =>
-        `<div class="prow"><span class="lbl">${esc(t.label)}</span><span class="sep">-</span><span class="val">${esc(t.value)}</span></div>`
-      ).join('');
-    }
+    if (d.tiers.length === 0) pl.innerHTML = `<div class="empty">価格を追加してください</div>`;
+    else pl.innerHTML = d.tiers.map(t => `<div class="prow"><span class="lbl">${esc(t.label)}</span><span class="sep">-</span><span class="val">${esc(t.value)}</span></div>`).join('');
     applyTheme();
   }
 
@@ -378,24 +552,15 @@
 
   function renderSaved() {
     const el = $('savedList');
-    if (savedItems.length === 0) {
-      el.innerHTML = `<div class="saved-empty">まだありません。プレビューを見ながら作成 →「保存」</div>`;
-      return;
-    }
+    if (savedItems.length === 0) { el.innerHTML = `<div class="saved-empty">まだありません。プレビューを見ながら作成 →「保存」</div>`; return; }
     el.innerHTML = '';
     savedItems.forEach((it, i) => {
       const row = document.createElement('div');
       row.className = 'saved-item';
       row.innerHTML = `
         ${it.image ? `<img src="${it.image}">` : `<img>`}
-        <div class="si-info">
-          <div class="si-name">${esc(it.name)}</div>
-          <div class="si-sub">${it.tiers.length}件の価格</div>
-        </div>
-        <div class="si-btns">
-          <button class="show ${activeIndex===i?'active':''}" title="プレビュー表示">表示</button>
-          <button class="rm" title="削除">削除</button>
-        </div>`;
+        <div class="si-info"><div class="si-name">${esc(it.name)}</div><div class="si-sub">${it.tiers.length}件の価格</div></div>
+        <div class="si-btns"><button class="show">表示</button><button class="rm">削除</button></div>`;
       row.querySelector('.show').onclick = () => { activeIndex = i; renderPreview(it); renderSaved(); window.scrollTo({top:0,behavior:'smooth'}); };
       row.querySelector('.rm').onclick = () => { savedItems.splice(i,1); if(activeIndex===i){activeIndex=-1;livePreview();} renderSaved(); };
       el.appendChild(row);
@@ -407,7 +572,7 @@
     if (!data.name && data.tiers.length === 0) { toast('内容を入力してください'); return; }
     toast('画像を生成中...');
     setTimeout(() => {
-      html2canvas($('canvas'), { scale:3, useCORS:true, backgroundColor:null }).then(canvas => {
+      html2canvas($('plCanvas'), { scale:3, useCORS:true, backgroundColor:null }).then(canvas => {
         const link = document.createElement('a');
         link.download = (data.name || '料金表') + '.png';
         link.href = canvas.toDataURL('image/png');
@@ -417,73 +582,38 @@
     }, 250);
   };
 
-  function esc(s){ return (s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
-  let tt;
-  function toast(m){ const t=$('toast'); t.textContent=m; t.classList.add('show'); clearTimeout(tt); tt=setTimeout(()=>t.classList.remove('show'),1700); }
-
-  /* ===== Templates (localStorage) ===== */
-  const TPL_KEY = 'priceListMaker_templates_v1';
-  let templates = [];
-
-  function loadTemplates() {
-    try {
-      const raw = localStorage.getItem(TPL_KEY);
-      templates = raw ? JSON.parse(raw) : [];
-    } catch(e) { templates = []; }
-  }
-  function persistTemplates() {
-    try { localStorage.setItem(TPL_KEY, JSON.stringify(templates)); }
-    catch(e) { toast('保存に失敗しました'); }
-  }
+  /* ----- price-list templates (localStorage) ----- */
+  const PL_TPL_KEY = 'priceListMaker_templates_v1';
+  let plTemplates = [];
+  function plLoadTemplates(){ try { plTemplates = JSON.parse(localStorage.getItem(PL_TPL_KEY)||'[]'); } catch(e){ plTemplates=[]; } }
+  function plPersist(){ try { localStorage.setItem(PL_TPL_KEY, JSON.stringify(plTemplates)); } catch(e){ toast('保存に失敗しました'); } }
 
   $('saveTplBtn').onclick = () => {
-    // current "frame": theme + eyebrow + price labels (values cleared)
-    const labels = [...document.querySelectorAll('#tiers .tier-row')]
-      .map(r => r.querySelector('.ti-label').value.trim())
-      .filter(l => l);
+    const labels = [...document.querySelectorAll('#tiers .tier-row')].map(r => r.querySelector('.ti-label').value.trim()).filter(l => l);
     const eyebrow = $('inEyebrow').value.trim();
-    if (!eyebrow && labels.length === 0) {
-      toast('サブ見出しか価格ラベルを入力してください'); return;
-    }
+    if (!eyebrow && labels.length === 0) { toast('サブ見出しか価格ラベルを入力してください'); return; }
     const name = prompt('テンプレ名を入力（例：駄菓子グラム売り）', eyebrow || '無題テンプレ');
     if (name === null) return;
-    templates.push({
-      name: name.trim() || '無題テンプレ',
-      theme: currentTheme,
-      eyebrow,
-      labels
-    });
-    persistTemplates();
-    renderTemplates();
-    toast('テンプレを保存しました');
+    plTemplates.push({ name: name.trim() || '無題テンプレ', theme: currentTheme, eyebrow, labels });
+    plPersist(); plRenderTemplates(); toast('テンプレを保存しました');
   };
 
-  function applyTemplate(t) {
-    // theme
+  function plApplyTemplate(t) {
     currentTheme = t.theme ?? 0;
     document.querySelectorAll('.theme-chip').forEach((e,j)=>e.classList.toggle('active', j===currentTheme));
-    // eyebrow
     $('inEyebrow').value = t.eyebrow || '';
-    // labels -> rebuild tier rows with empty values
     $('tiers').innerHTML = '';
-    if (t.labels && t.labels.length) {
-      t.labels.forEach(l => addTierRow(l, ''));
-    } else {
-      addTierRow(); addTierRow();
-    }
-    livePreview();
-    toast('テンプレを適用しました');
+    if (t.labels && t.labels.length) t.labels.forEach(l => addTierRow(l, ''));
+    else { addTierRow(); addTierRow(); }
+    livePreview(); toast('テンプレを適用しました');
     window.scrollTo({top:0, behavior:'smooth'});
   }
 
-  function renderTemplates() {
+  function plRenderTemplates() {
     const el = $('tplList');
-    if (templates.length === 0) {
-      el.innerHTML = `<div class="tpl-empty">テンプレ未登録。背景テーマ・サブ見出し・価格ラベルを設定して保存できます</div>`;
-      return;
-    }
+    if (plTemplates.length === 0) { el.innerHTML = `<div class="tpl-empty">テンプレ未登録。背景テーマ・サブ見出し・価格ラベルを設定して保存できます</div>`; return; }
     el.innerHTML = '';
-    templates.forEach((t, i) => {
+    plTemplates.forEach((t, i) => {
       const row = document.createElement('div');
       row.className = 'tpl-item';
       const themeCss = (THEMES[t.theme] && THEMES[t.theme].css) || THEMES[0].css;
@@ -492,28 +622,295 @@
       if (t.labels && t.labels.length) subParts.push(t.labels.join(' / '));
       row.innerHTML = `
         <div class="tpl-swatch" style="background:${themeCss}"></div>
-        <div class="tpl-info">
-          <div class="tpl-name">${esc(t.name)}</div>
-          <div class="tpl-sub">${esc(subParts.join(' ・ ') || '枠のみ')}</div>
-        </div>
-        <div class="tpl-btns">
-          <button class="apply">適用</button>
-          <button class="del">削除</button>
-        </div>`;
-      row.querySelector('.apply').onclick = () => applyTemplate(t);
-      row.querySelector('.del').onclick = () => {
-        if (confirm(`テンプレ「${t.name}」を削除しますか？`)) {
-          templates.splice(i,1); persistTemplates(); renderTemplates();
-        }
-      };
+        <div class="tpl-info"><div class="tpl-name">${esc(t.name)}</div><div class="tpl-sub">${esc(subParts.join(' ・ ') || '枠のみ')}</div></div>
+        <div class="tpl-btns"><button class="apply">適用</button><button class="del">削除</button></div>`;
+      row.querySelector('.apply').onclick = () => plApplyTemplate(t);
+      row.querySelector('.del').onclick = () => { if (confirm(`テンプレ「${t.name}」を削除しますか？`)) { plTemplates.splice(i,1); plPersist(); plRenderTemplates(); } };
       el.appendChild(row);
     });
   }
 
-  loadTemplates();
-  renderTemplates();
+  plLoadTemplates(); plRenderTemplates(); applyTheme();
 
-  applyTheme();
+  /* ============================================================ */
+  /* ===== X POST MAKER ===== */
+  /* ============================================================ */
+  const X_LIMIT = 280;
+
+  const xDefaultTemplates = [
+    { id:'t1', name:'X投稿', text:`{{target}}\n\n{{pain}}\n{{solution}}\n\n{{benefit}}{{cta}}\n\n{{tag}}\n\n{{extra}}` },
+  ];
+
+  const xDefaultVarBank = {
+    "target": ["業界最安値","誰も見たことのないアングラチャンネル","高品質低価格","全てお任せください","全て解決致します","お客様のお悩み解決致します"],
+    "pain": ["『品質の高い物がほしい...』","『値段の割に品質が...』","『安いのは助かるけど品質が...』","『価格に見合ってない商品が多すぎる...』"],
+    "solution": ["『失敗したくないから品質で選びたい』","『写真と実物違いすぎない？』","『高い＝良い、でもないのが悔しい...』","『仕入れてから不安になるのが嫌だ...』","『値段安いと、品質も落ちるかな...』","『毎回バラつきあるの、正直困る...』"],
+    "benefit": ["ぜひ","是非","我々","私たち","業界最安値の","最安値の","高品質をお求めなら"],
+    "cta": ["にお任せください"],
+    "tag": ["chはプロフィールから","この投稿は二度と表示されません","チャンネルを除くだけでも大丈夫","どんなことでもお任せください","その他にも秘情報あります","お問い合わせはプロフから","タイムセールも随時開催してます"],
+    "extra": ["手押し相撲開催地 大阪 福岡 広島 姫路 兵庫 神戸 滋賀 名古屋 静岡 横浜 東京 千葉 宮城 札幌","大阪奈良京都兵庫全国手押しポンプ操法車"]
+  };
+
+  const X_TPL_KEY = 'x_post_maker_templates_v4';
+  const X_LAST_KEY = 'x_post_maker_last_v4';
+  const X_VAR_KEY  = 'x_post_maker_vars_v4';
+  const X_BUZZ_KEY = 'x_post_maker_buzz_v4';
+
+  let xTemplates = [];
+  let xVarBank = {};
+
+  function xLoadTemplates(){
+    try { const p = JSON.parse(localStorage.getItem(X_TPL_KEY)||'null'); xTemplates = (Array.isArray(p)&&p.length)?p:JSON.parse(JSON.stringify(xDefaultTemplates)); }
+    catch(e){ xTemplates = JSON.parse(JSON.stringify(xDefaultTemplates)); }
+  }
+  function xSaveTemplates(){ localStorage.setItem(X_TPL_KEY, JSON.stringify(xTemplates)); }
+  function xLoadVarBank(){
+    try {
+      const stored = localStorage.getItem(X_VAR_KEY);
+      if (stored) { xVarBank = JSON.parse(stored) || {}; }
+      else { xVarBank = JSON.parse(JSON.stringify(xDefaultVarBank)); xSaveVarBank(); }
+    } catch(e){ xVarBank = JSON.parse(JSON.stringify(xDefaultVarBank)); }
+  }
+  function xSaveVarBank(){ localStorage.setItem(X_VAR_KEY, JSON.stringify(xVarBank)); }
+
+  function xExtractVars(text){
+    const re = /\{\{\s*([a-zA-Z0-9_\-ぁ-んァ-ヶ一-龠]+)\s*\}\}/g;
+    const set = new Set(); let m;
+    while((m = re.exec(text)) !== null){ if(m[1] !== 'buzz') set.add(m[1]); }
+    return [...set];
+  }
+
+  function xRefreshSelect(selectedId){
+    const sel = $('xTplSelect'); sel.innerHTML = '';
+    xTemplates.forEach(t => { const o = document.createElement('option'); o.value = t.id; o.textContent = t.name; sel.appendChild(o); });
+    const last = localStorage.getItem(X_LAST_KEY);
+    sel.value = selectedId || last || xTemplates[0]?.id;
+  }
+
+  function xLoadToEditor(id){
+    const t = xTemplates.find(x => x.id === id) || xTemplates[0];
+    $('xTplText').value = t.text;
+    localStorage.setItem(X_LAST_KEY, t.id);
+    xRenderVars(); xUpdateCharLive();
+  }
+
+  function xRenderVars(){
+    const vars = xExtractVars($('xTplText').value);
+    const area = $('xVarsArea'); area.innerHTML = '';
+    if (vars.length === 0){ area.innerHTML = `<div class="help">本文に {{変数}} を入れると、ここに候補欄が出ます。1行=1候補。</div>`; return; }
+    vars.forEach(v => {
+      const block = document.createElement('div');
+      block.className = 'var-block';
+      block.innerHTML = `<div class="vb-label">{{${esc(v)}}} の候補</div>`;
+      const ta = document.createElement('textarea');
+      ta.className = 'inp';
+      ta.placeholder = '1行=1候補。空行は無視';
+      ta.value = (xVarBank[v] || []).join('\n');
+      ta.addEventListener('input', () => { xVarBank[v] = ta.value.split('\n').map(s=>s.trim()).filter(Boolean); xSaveVarBank(); });
+      block.appendChild(ta);
+      area.appendChild(block);
+    });
+  }
+
+  function xUpdateCharLive(){
+    const len = $('xTplText').value.length;
+    const over = len > X_LIMIT;
+    $('xCharLive').innerHTML = `<span class="${over?'over':''}">${len} / ${X_LIMIT}文字${over?'（超過）':''}</span> ※変数展開前`;
+  }
+
+  /* quick inserts */
+  const QUICK = [
+    { label:'改行', insert:'\n' },
+    { label:'#タグ', insert:'#' },
+    { label:'@メンション', insert:'@' },
+    { label:'{{buzz}}', insert:'{{buzz}}' },
+    { label:'🔥', insert:'🔥' },
+    { label:'✅', insert:'✅' },
+    { label:'👇', insert:'👇' },
+    { label:'→', insert:'→' },
+  ];
+  const qi = $('xQuickInserts');
+  QUICK.forEach(q => {
+    const b = document.createElement('button');
+    b.textContent = q.label;
+    b.onclick = () => insertAtCursor($('xTplText'), q.insert);
+    qi.appendChild(b);
+  });
+  function insertAtCursor(ta, text){
+    const s = ta.selectionStart ?? ta.value.length;
+    const e = ta.selectionEnd ?? ta.value.length;
+    ta.value = ta.value.slice(0,s) + text + ta.value.slice(e);
+    const pos = s + text.length;
+    ta.focus(); ta.setSelectionRange(pos, pos);
+    xRenderVars(); xUpdateCharLive();
+  }
+
+  $('xTplText').addEventListener('input', () => { xRenderVars(); xUpdateCharLive(); });
+
+  /* buzzwords */
+  function xLoadBuzz(){ $('xBuzz').value = localStorage.getItem(X_BUZZ_KEY) || ''; }
+  $('xBuzz').addEventListener('input', () => localStorage.setItem(X_BUZZ_KEY, $('xBuzz').value));
+  function xBuzzList(){ return ($('xBuzz').value||'').split('\n').map(s=>s.trim()).filter(Boolean); }
+  function xBuzzRandom(){ const l = xBuzzList(); return l.length ? l[Math.floor(Math.random()*l.length)] : ''; }
+
+  /* generation */
+  function cartesian(arrays){
+    let res = [[]];
+    for (const arr of arrays){
+      const next = [];
+      for (const r of res) for (const x of arr) next.push([...r, x]);
+      res = next;
+      if (res.length > 10000) break;
+    }
+    return res;
+  }
+
+  function xGenerate({ shuffle=false } = {}){
+    const tpl = $('xTplText').value;
+    const vars = xExtractVars(tpl);
+    const maxGen = Math.max(1, Math.min(200, parseInt($('xMaxGen').value||'20',10)));
+    const dedupe = $('xDedupe').checked;
+
+    const candidates = {};
+    for (const v of vars){
+      candidates[v] = (xVarBank[v] || []).slice();
+    }
+    const missing = vars.filter(v => !candidates[v] || candidates[v].length === 0);
+    if (missing.length){
+      $('xStats').textContent = `未入力の変数があります：${missing.map(v=>`{{${v}}}`).join(', ')}`;
+      xRenderOutput([]);
+      return;
+    }
+
+    const arrays = vars.map(v => candidates[v]);
+    let combos = vars.length ? cartesian(arrays) : [[]];
+    let posts = combos.map(choiceArr => {
+      let s = tpl;
+      vars.forEach((v,i) => {
+        const re = new RegExp('\\{\\{\\s*' + v.replace(/[.*+?^${}()|[\]\\]/g,'\\$&') + '\\s*\\}\\}','g');
+        s = s.replace(re, choiceArr[i]);
+      });
+      s = s.replace(/\{\{\s*buzz\s*\}\}/g, () => xBuzzRandom());
+      return s.trim();
+    });
+
+    if (shuffle){
+      for (let i = posts.length-1; i>0; i--){ const j = Math.floor(Math.random()*(i+1)); [posts[i],posts[j]]=[posts[j],posts[i]]; }
+    }
+    if (dedupe){ posts = [...new Set(posts)]; }
+
+    const total = combos.length;
+    posts = posts.slice(0, maxGen);
+    $('xStats').textContent = `生成：${posts.length}件${dedupe?'（重複除外後）':''} / 組み合わせ総数（概算）：${total}件`;
+    xRenderOutput(posts);
+  }
+
+  function xRenderOutput(items){
+    const out = $('xOutput'); out.innerHTML = '';
+    if (!items || !items.length){ out.innerHTML = `<div class="out-empty">出力がありません</div>`; return; }
+    items.forEach((text, idx) => {
+      const len = (text||'').length;
+      const over = len > X_LIMIT;
+      const remain = X_LIMIT - len;
+      const card = document.createElement('div');
+      card.className = 'out-card';
+      card.innerHTML = `
+        <div class="out-meta">
+          <span class="out-badge">#${idx+1}</span>
+          <span class="out-count ${over?'over':''}">${len}文字（残り${remain}）</span>
+        </div>
+        <div class="out-text">${esc(text)}</div>
+        <div class="out-actions">
+          <button class="a-copy">コピー</button>
+          <button class="a-post">Xに投稿</button>
+        </div>`;
+      card.querySelector('.a-copy').onclick = async () => {
+        try { await navigator.clipboard.writeText(text||''); toast('コピーしました'); }
+        catch(e){ const ta=document.createElement('textarea'); ta.value=text||''; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); toast('コピーしました'); }
+      };
+      card.querySelector('.a-post').onclick = () => {
+        const url = 'https://twitter.com/intent/tweet?text=' + encodeURIComponent(text||'');
+        window.open(url, '_blank', 'noopener');
+        toast('投稿画面を開きました');
+      };
+      out.appendChild(card);
+    });
+  }
+
+  async function xCopyAll(){
+    const items = [...$('xOutput').querySelectorAll('.out-text')].map(p => p.textContent);
+    const all = items.join('\n\n---\n\n');
+    if (!all.trim()){ toast('先に生成してください'); return; }
+    try { await navigator.clipboard.writeText(all); toast('全部コピーしました'); }
+    catch(e){ const ta=document.createElement('textarea'); ta.value=all; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); toast('全部コピーしました'); }
+  }
+
+  /* template CRUD */
+  $('xSaveTpl').onclick = () => {
+    const id = $('xTplSelect').value;
+    let t = xTemplates.find(x => x.id === id);
+    if (!t) return;
+    const name = prompt('テンプレ名（一覧表示用）', t.name);
+    if (name === null) return;
+    t.name = name.trim() || t.name;
+    t.text = $('xTplText').value;
+    xSaveTemplates(); xRefreshSelect(t.id); toast('テンプレを保存しました');
+  };
+  $('xNewTpl').onclick = () => {
+    const name = prompt('新規テンプレ名', '新しいテンプレ');
+    if (name === null) return;
+    const id = 't' + Math.random().toString(16).slice(2);
+    xTemplates.unshift({ id, name: name.trim()||'新しいテンプレ', text:`{{target}}へ。\n{{pain}}\n\n{{cta}}\n{{tag}}` });
+    xSaveTemplates(); xRefreshSelect(id); xLoadToEditor(id); toast('新規テンプレを作成しました');
+  };
+  $('xDelTpl').onclick = () => {
+    if (xTemplates.length <= 1){ toast('最後の1つは削除できません'); return; }
+    const id = $('xTplSelect').value;
+    const t = xTemplates.find(x => x.id === id);
+    if (!t) return;
+    if (!confirm(`テンプレ「${t.name}」を削除しますか？`)) return;
+    xTemplates = xTemplates.filter(x => x.id !== id);
+    xSaveTemplates(); xRefreshSelect(); xLoadToEditor($('xTplSelect').value); toast('削除しました');
+  };
+  $('xTplSelect').onchange = () => xLoadToEditor($('xTplSelect').value);
+
+  /* JSON import / export */
+  $('xExportBtn').onclick = () => {
+    const data = { templates: xTemplates, varBank: xVarBank };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type:'application/json' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'x_post_maker_backup.json';
+    link.click();
+    URL.revokeObjectURL(link.href);
+    toast('JSONを書き出しました');
+  };
+  $('xImportBtn').onclick = () => $('xImportFile').click();
+  $('xImportFile').onchange = e => {
+    const f = e.target.files[0]; if (!f) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      try {
+        const data = JSON.parse(ev.target.result);
+        if (Array.isArray(data.templates) && data.templates.length) { xTemplates = data.templates; xSaveTemplates(); }
+        if (data.varBank && typeof data.varBank === 'object') { xVarBank = data.varBank; xSaveVarBank(); }
+        xRefreshSelect(); xLoadToEditor($('xTplSelect').value);
+        toast('JSONを読み込みました');
+      } catch(err) {
+        toast('JSONの読み込みに失敗しました');
+      }
+      $('xImportFile').value = '';
+    };
+    reader.readAsText(f);
+  };
+
+  $('xGenBtn').onclick = () => xGenerate({ shuffle:false });
+  $('xShuffleBtn').onclick = () => xGenerate({ shuffle:true });
+  $('xCopyAllBtn').onclick = xCopyAll;
+
+  /* init X */
+  xLoadTemplates(); xLoadVarBank(); xLoadBuzz();
+  xRefreshSelect(); xLoadToEditor($('xTplSelect').value);
 </script>
 </body>
 </html>
