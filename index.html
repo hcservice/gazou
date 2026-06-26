@@ -236,6 +236,79 @@
 
   .gen-stats { font-size:12px; color:var(--ui-muted); margin-top:12px; }
 
+  /* ===== fill-in slots ===== */
+  .slot {
+    border:1px solid var(--ui-line); border-radius:11px; padding:12px; margin-bottom:10px;
+    background:var(--ui-panel2);
+  }
+  .slot.off { opacity:.5; }
+  .slot-head { display:flex; align-items:center; gap:10px; margin-bottom:8px; }
+  .slot-toggle {
+    width:38px; height:22px; border-radius:20px; background:var(--ui-line); position:relative;
+    flex-shrink:0; cursor:pointer; transition:background .2s;
+  }
+  .slot-toggle::after {
+    content:""; position:absolute; top:2px; left:2px; width:18px; height:18px; border-radius:50%;
+    background:#fff; transition:transform .2s;
+  }
+  .slot.on .slot-toggle { background:var(--ui-accent); }
+  .slot.on .slot-toggle::after { transform:translateX(16px); }
+  .slot-name { font-size:14px; font-weight:800; flex:1; }
+  .slot-name .req { color:var(--ui-warn); font-size:11px; margin-left:4px; }
+  .slot-name-input {
+    flex:1; min-width:0; border:1px solid transparent; border-radius:7px; padding:6px 8px;
+    font-size:14px; font-weight:800; font-family:inherit; background:transparent; color:var(--ui-text);
+  }
+  .slot-name-input:focus { outline:none; border-color:var(--ui-accent); background:var(--ui-bg); }
+  .slot-del {
+    flex-shrink:0; padding:5px 10px; border-radius:7px; border:1px solid var(--ui-line);
+    background:var(--ui-bg); color:var(--ui-muted); font-size:11px; font-weight:700; cursor:pointer; font-family:inherit;
+  }
+  .slot-hint { font-size:11px; color:var(--ui-muted); margin-bottom:6px; line-height:1.5; }
+
+  .cand-wrap { display:flex; flex-direction:column; gap:6px; margin-bottom:8px; }
+  .cand-row { display:flex; gap:6px; align-items:center; }
+  .cand-input {
+    flex:1; min-width:0; border:1px solid var(--ui-line); border-radius:8px; padding:9px 11px;
+    font-size:14px; font-family:inherit; background:var(--ui-bg); color:var(--ui-text);
+  }
+  .cand-input:focus { outline:none; border-color:var(--ui-accent); }
+  .cand-del {
+    flex-shrink:0; width:34px; height:34px; border-radius:8px; border:1px solid var(--ui-line);
+    background:var(--ui-bg); color:var(--ui-muted); font-size:13px; cursor:pointer; font-family:inherit;
+  }
+  .cand-add {
+    width:100%; padding:8px; border:1px dashed var(--ui-line); border-radius:8px;
+    background:transparent; color:var(--ui-accent); font-size:13px; font-weight:700; cursor:pointer; font-family:inherit;
+  }
+  .slot-add {
+    width:100%; padding:13px; border:1px dashed var(--ui-accent); border-radius:11px;
+    background:transparent; color:var(--ui-accent); font-size:14px; font-weight:800; cursor:pointer; font-family:inherit;
+    margin-top:4px;
+  }
+  .slot textarea {
+    width:100%; border:1px solid var(--ui-line); border-radius:9px; padding:10px 11px;
+    font-size:14px; font-family:inherit; background:var(--ui-bg); color:var(--ui-text);
+    min-height:70px; resize:vertical; line-height:1.6;
+  }
+  .slot textarea:focus { outline:none; border-color:var(--ui-accent); }
+  .slot-meta { display:flex; align-items:center; justify-content:space-between; margin-top:6px; }
+  .slot-count { font-size:11px; color:var(--ui-muted); }
+  .slot-buzz { font-size:11px; color:var(--ui-muted); display:flex; align-items:center; gap:5px; cursor:pointer; }
+  .slot-buzz input { width:auto; }
+
+  details.xadv { padding:0; }
+  details.xadv summary {
+    cursor:pointer; padding:14px 16px; font-size:13px; font-weight:800; list-style:none;
+    display:flex; align-items:center; justify-content:space-between;
+  }
+  details.xadv summary::-webkit-details-marker { display:none; }
+  details.xadv summary::after { content:"▾"; color:var(--ui-muted); }
+  details.xadv[open] summary::after { content:"▴"; }
+  details.xadv > .fld, details.xadv > .btns, details.xadv > label { padding:0 16px; }
+  details.xadv > .fld:last-of-type { padding-bottom:0; }
+  details.xadv > .btns { padding-bottom:16px; }
+
   .out-list { display:flex; flex-direction:column; gap:10px; margin-top:14px; }
   .out-card { border:1px solid var(--ui-line); border-radius:12px; padding:12px; background:var(--ui-panel2); }
   .out-meta { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
@@ -357,47 +430,19 @@
 <div class="view" id="viewX">
   <div class="wrap">
     <div class="view-title">Xポスト作成</div>
-    <div class="view-sub">テンプレに {{変数}} を入れ、候補を組み合わせて投稿文を量産。コピー or そのままXへ。</div>
+    <div class="view-sub">下の欄を埋めるだけ。各欄に候補を入れると、組み合わせて投稿文を量産します。</div>
 
     <div class="card">
-      <div class="ttl">テンプレート</div>
-      <div class="x-tplbar">
-        <select class="inp" id="xTplSelect"></select>
-      </div>
-      <div class="btns" style="margin-top:0;">
-        <button class="btn sec" id="xSaveTpl">保存</button>
-        <button class="btn sec" id="xNewTpl">新規</button>
-        <button class="btn sec" id="xDelTpl">削除</button>
-      </div>
-      <div class="btns" style="margin-top:8px;">
-        <button class="btn sec" id="xImportBtn">JSON読込</button>
-        <button class="btn sec" id="xExportBtn">JSON書出</button>
-        <input type="file" id="xImportFile" accept="application/json" hidden>
-      </div>
-
-      <div class="fld">
-        <label>本文（{{target}} などの変数を使える）</label>
-        <textarea class="inp" id="xTplText" placeholder="{{target}}へ。&#10;{{pain}}&#10;&#10;{{cta}}&#10;{{tag}}"></textarea>
-        <div class="char-live" id="xCharLive"></div>
-      </div>
-
-      <div class="quick-inserts" id="xQuickInserts"></div>
-      <div class="help">
-        {{buzz}} を入れると、下のバズワード辞書からランダムで1語挿入されます。<br>
-        変数は本文から自動で読み取って、下に候補入力欄が出ます。
-      </div>
+      <div class="ttl">投稿パーツ（埋めるだけ）</div>
+      <div class="help" style="margin-top:0; margin-bottom:6px;">各パーツに言葉を入れてください。1行=1候補。複数入れると組み合わせます。使わないパーツはオフに。</div>
+      <div id="xSlots"></div>
     </div>
 
-    <div class="card">
-      <div class="ttl">変数の候補</div>
-      <div id="xVarsArea"><div class="help">本文に {{変数}} を入れると、ここに候補欄が出ます。1行=1候補。</div></div>
-    </div>
-
-    <div class="card">
-      <div class="ttl">バズワード辞書 & 生成設定</div>
+    <details class="card xadv">
+      <summary>詳細設定（バズワード・生成数）</summary>
       <div class="fld">
-        <label>バズワード辞書（1行=1フレーズ・{{buzz}}用）</label>
-        <textarea class="inp" id="xBuzz" placeholder="最短で&#10;9割が知らない&#10;今すぐ&#10;ガチで&#10;これだけでOK" style="min-height:90px;"></textarea>
+        <label>バズワード辞書（1行=1フレーズ。各パーツの「★バズ差込」をオンにした所にランダム挿入）</label>
+        <textarea class="inp" id="xBuzz" placeholder="最短で&#10;9割が知らない&#10;今すぐ&#10;ガチで&#10;これだけでOK" style="min-height:80px;"></textarea>
       </div>
       <div class="fld">
         <label>生成数（最大）</label>
@@ -406,16 +451,22 @@
       <label style="margin-top:14px; display:flex; align-items:center; gap:8px; font-size:13px; color:var(--ui-text); cursor:pointer;">
         <input type="checkbox" id="xDedupe" checked style="width:auto;"> 重複した文を除外する
       </label>
-    </div>
+      <div class="btns" style="margin-top:14px;">
+        <button class="btn sec" id="xImportBtn">JSON読込</button>
+        <button class="btn sec" id="xExportBtn">JSON書出</button>
+        <button class="btn sec" id="xResetBtn">初期データに戻す</button>
+        <input type="file" id="xImportFile" accept="application/json" hidden>
+      </div>
+    </details>
 
     <div class="btns">
-      <button class="btn full" id="xGenBtn">生成</button>
-      <button class="btn sec" id="xShuffleBtn">シャッフル生成</button>
+      <button class="btn full" id="xGenBtn">生成する</button>
+      <button class="btn sec" id="xShuffleBtn">シャッフル</button>
       <button class="btn sec" id="xCopyAllBtn">全部コピー</button>
     </div>
     <div class="gen-stats" id="xStats"></div>
 
-    <div class="out-list" id="xOutput"><div class="out-empty">「生成」を押すと投稿文がここに出ます</div></div>
+    <div class="out-list" id="xOutput"><div class="out-empty">「生成する」を押すと投稿文がここに出ます</div></div>
   </div>
 </div>
 
@@ -693,121 +744,151 @@
   plLoadTemplates(); plRenderTemplates(); applyTheme();
 
   /* ============================================================ */
-  /* ===== X POST MAKER ===== */
+  /* ===== X POST MAKER (穴埋めフォーム方式) ===== */
   /* ============================================================ */
   const X_LIMIT = 280;
 
-  const xDefaultTemplates = [
-    { id:'t1', name:'X投稿', text:`{{target}}\n\n{{pain}}\n{{solution}}\n\n{{benefit}}{{cta}}\n\n{{tag}}\n\n{{extra}}` },
+  // 初期パーツ（編集可能。各パーツは自己完結したオブジェクト）
+  const xDefaultSlots = [
+    { id:'s_target',   name:'ターゲット',     join:'',     on:true, buzz:false, cands:["業界最安値","誰も見たことのないアングラチャンネル","高品質低価格","全てお任せください","全て解決致します","お客様のお悩み解決致します"] },
+    { id:'s_pain',     name:'悩み・共感',     join:'\n\n', on:true, buzz:false, cands:["『品質の高い物がほしい...』","『値段の割に品質が...』","『安いのは助かるけど品質が...』","『価格に見合ってない商品が多すぎる...』"] },
+    { id:'s_solution', name:'追い打ち・気づき', join:'\n',   on:true, buzz:false, cands:["『失敗したくないから品質で選びたい』","『写真と実物違いすぎない？』","『高い＝良い、でもないのが悔しい...』","『仕入れてから不安になるのが嫌だ...』","『値段安いと、品質も落ちるかな...』","『毎回バラつきあるの、正直困る...』"] },
+    { id:'s_benefit',  name:'後押し',         join:'\n\n', on:true, buzz:false, cands:["ぜひ","是非","我々","私たち","業界最安値の","最安値の","高品質をお求めなら"] },
+    { id:'s_cta',      name:'締め・行動',     join:'',     on:true, buzz:false, cands:["にお任せください"] },
+    { id:'s_tag',      name:'タグ・補足',     join:'\n\n', on:true, buzz:false, cands:["chはプロフィールから","この投稿は二度と表示されません","チャンネルを除くだけでも大丈夫","どんなことでもお任せください","その他にも秘情報あります","お問い合わせはプロフから","タイムセールも随時開催してます"] },
+    { id:'s_extra',    name:'追加テキスト',    join:'\n\n', on:true, buzz:false, cands:["手押し相撲開催地 大阪 福岡 広島 姫路 兵庫 神戸 滋賀 名古屋 静岡 横浜 東京 千葉 宮城 札幌","大阪奈良京都兵庫全国手押しポンプ操法車"] },
   ];
 
-  const xDefaultVarBank = {
-    "target": ["業界最安値","誰も見たことのないアングラチャンネル","高品質低価格","全てお任せください","全て解決致します","お客様のお悩み解決致します"],
-    "pain": ["『品質の高い物がほしい...』","『値段の割に品質が...』","『安いのは助かるけど品質が...』","『価格に見合ってない商品が多すぎる...』"],
-    "solution": ["『失敗したくないから品質で選びたい』","『写真と実物違いすぎない？』","『高い＝良い、でもないのが悔しい...』","『仕入れてから不安になるのが嫌だ...』","『値段安いと、品質も落ちるかな...』","『毎回バラつきあるの、正直困る...』"],
-    "benefit": ["ぜひ","是非","我々","私たち","業界最安値の","最安値の","高品質をお求めなら"],
-    "cta": ["にお任せください"],
-    "tag": ["chはプロフィールから","この投稿は二度と表示されません","チャンネルを除くだけでも大丈夫","どんなことでもお任せください","その他にも秘情報あります","お問い合わせはプロフから","タイムセールも随時開催してます"],
-    "extra": ["手押し相撲開催地 大阪 福岡 広島 姫路 兵庫 神戸 滋賀 名古屋 静岡 横浜 東京 千葉 宮城 札幌","大阪奈良京都兵庫全国手押しポンプ操法車"]
-  };
+  const X_SLOTS_KEY = 'x_post_slots_v2';
+  const X_BUZZ_KEY  = 'x_post_form_buzz_v1';
 
-  const X_TPL_KEY = 'x_post_maker_templates_v4';
-  const X_LAST_KEY = 'x_post_maker_last_v4';
-  const X_VAR_KEY  = 'x_post_maker_vars_v4';
-  const X_BUZZ_KEY = 'x_post_maker_buzz_v4';
+  let xSlots = [];
 
-  let xTemplates = [];
-  let xVarBank = {};
-
-  function xLoadTemplates(){
-    try { const p = JSON.parse(localStorage.getItem(X_TPL_KEY)||'null'); xTemplates = (Array.isArray(p)&&p.length)?p:JSON.parse(JSON.stringify(xDefaultTemplates)); }
-    catch(e){ xTemplates = JSON.parse(JSON.stringify(xDefaultTemplates)); }
-  }
-  function xSaveTemplates(){ localStorage.setItem(X_TPL_KEY, JSON.stringify(xTemplates)); }
-  function xLoadVarBank(){
+  function xLoadSlots(){
     try {
-      const stored = localStorage.getItem(X_VAR_KEY);
-      if (stored) { xVarBank = JSON.parse(stored) || {}; }
-      else { xVarBank = JSON.parse(JSON.stringify(xDefaultVarBank)); xSaveVarBank(); }
-    } catch(e){ xVarBank = JSON.parse(JSON.stringify(xDefaultVarBank)); }
+      const stored = localStorage.getItem(X_SLOTS_KEY);
+      const p = stored ? JSON.parse(stored) : null;
+      xSlots = (Array.isArray(p) && p.length) ? p : JSON.parse(JSON.stringify(xDefaultSlots));
+    } catch(e){ xSlots = JSON.parse(JSON.stringify(xDefaultSlots)); }
+    // 旧バージョン(v1)のデータがあれば引き継ぐ
+    migrateOldX();
   }
-  function xSaveVarBank(){ localStorage.setItem(X_VAR_KEY, JSON.stringify(xVarBank)); }
+  function xSaveSlots(){ localStorage.setItem(X_SLOTS_KEY, JSON.stringify(xSlots)); }
 
-  function xExtractVars(text){
-    const re = /\{\{\s*([a-zA-Z0-9_\-ぁ-んァ-ヶ一-龠]+)\s*\}\}/g;
-    const set = new Set(); let m;
-    while((m = re.exec(text)) !== null){ if(m[1] !== 'buzz') set.add(m[1]); }
-    return [...set];
-  }
-
-  function xRefreshSelect(selectedId){
-    const sel = $('xTplSelect'); sel.innerHTML = '';
-    xTemplates.forEach(t => { const o = document.createElement('option'); o.value = t.id; o.textContent = t.name; sel.appendChild(o); });
-    const last = localStorage.getItem(X_LAST_KEY);
-    sel.value = selectedId || last || xTemplates[0]?.id;
-  }
-
-  function xLoadToEditor(id){
-    const t = xTemplates.find(x => x.id === id) || xTemplates[0];
-    $('xTplText').value = t.text;
-    localStorage.setItem(X_LAST_KEY, t.id);
-    xRenderVars(); xUpdateCharLive();
+  // v1（vars/cfg別保存）からの移行
+  function migrateOldX(){
+    if (localStorage.getItem(X_SLOTS_KEY)) return; // 既にv2あり
+    try {
+      const oldVars = JSON.parse(localStorage.getItem('x_post_form_vars_v1')||'null');
+      if (oldVars && typeof oldVars === 'object'){
+        const oldCfg = JSON.parse(localStorage.getItem('x_post_form_cfg_v1')||'{}')||{};
+        xSlots.forEach(s => {
+          const k = s.id.replace(/^s_/,'');
+          if (Array.isArray(oldVars[k])) s.cands = oldVars[k];
+          if (oldCfg[k]) { s.on = !!oldCfg[k].on; s.buzz = !!oldCfg[k].buzz; }
+        });
+        xSaveSlots();
+      }
+    } catch(e){}
   }
 
-  function xRenderVars(){
-    const vars = xExtractVars($('xTplText').value);
-    const area = $('xVarsArea'); area.innerHTML = '';
-    if (vars.length === 0){ area.innerHTML = `<div class="help">本文に {{変数}} を入れると、ここに候補欄が出ます。1行=1候補。</div>`; return; }
-    vars.forEach(v => {
-      const block = document.createElement('div');
-      block.className = 'var-block';
-      block.innerHTML = `<div class="vb-label">{{${esc(v)}}} の候補</div>`;
-      const ta = document.createElement('textarea');
-      ta.className = 'inp';
-      ta.placeholder = '1行=1候補。空行は無視';
-      ta.value = (xVarBank[v] || []).join('\n');
-      ta.addEventListener('input', () => { xVarBank[v] = ta.value.split('\n').map(s=>s.trim()).filter(Boolean); xSaveVarBank(); });
-      block.appendChild(ta);
-      area.appendChild(block);
+  function newId(){ return 's_' + Math.random().toString(16).slice(2,8); }
+
+  // スロットUIを描画
+  function xRenderSlots(){
+    const wrap = $('xSlots'); wrap.innerHTML = '';
+    xSlots.forEach((s, si) => {
+      const slot = document.createElement('div');
+      slot.className = 'slot ' + (s.on ? 'on' : 'off');
+
+      // header
+      const head = document.createElement('div');
+      head.className = 'slot-head';
+      head.innerHTML = `
+        <div class="slot-toggle" title="使う/使わない"></div>
+        <input class="slot-name-input" value="${esc(s.name)}" placeholder="パーツ名">
+        <button class="slot-del" title="このパーツを削除">削除</button>`;
+      head.querySelector('.slot-toggle').onclick = () => { s.on = !s.on; xSaveSlots(); xRenderSlots(); };
+      const nameInput = head.querySelector('.slot-name-input');
+      nameInput.addEventListener('input', () => { s.name = nameInput.value; xSaveSlots(); });
+      head.querySelector('.slot-del').onclick = () => {
+        if (!confirm(`パーツ「${s.name||'無題'}」を削除しますか？`)) return;
+        xSlots.splice(si, 1); xSaveSlots(); xRenderSlots();
+      };
+      slot.appendChild(head);
+
+      // candidates (1候補=1入力欄)
+      const candWrap = document.createElement('div');
+      candWrap.className = 'cand-wrap';
+      (s.cands || []).forEach((c, ci) => {
+        candWrap.appendChild(makeCandRow(s, ci));
+      });
+      slot.appendChild(candWrap);
+
+      // add candidate button
+      const addBtn = document.createElement('button');
+      addBtn.className = 'cand-add';
+      addBtn.textContent = '＋ 候補を追加';
+      addBtn.onclick = () => {
+        s.cands = s.cands || [];
+        s.cands.push('');
+        xSaveSlots();
+        const row = makeCandRow(s, s.cands.length - 1);
+        candWrap.appendChild(row);
+        const inp = row.querySelector('input'); if (inp) inp.focus();
+        updateSlotCount(slot, s);
+      };
+      slot.appendChild(addBtn);
+
+      // meta (count + buzz)
+      const meta = document.createElement('div');
+      meta.className = 'slot-meta';
+      meta.innerHTML = `
+        <span class="slot-count">${(s.cands||[]).filter(Boolean).length}個の候補</span>
+        <label class="slot-buzz"><input type="checkbox" ${s.buzz?'checked':''}>★バズ差込</label>`;
+      meta.querySelector('input[type=checkbox]').onchange = (e) => { s.buzz = e.target.checked; xSaveSlots(); };
+      slot.appendChild(meta);
+
+      wrap.appendChild(slot);
     });
+
+    // ＋パーツを追加
+    const addSlot = document.createElement('button');
+    addSlot.className = 'slot-add';
+    addSlot.textContent = '＋ パーツを追加';
+    addSlot.onclick = () => {
+      const name = prompt('新しいパーツ名（例：特典、価格、期間限定）', '新しいパーツ');
+      if (name === null) return;
+      xSlots.push({ id:newId(), name:name.trim()||'新しいパーツ', join:'\n\n', on:true, buzz:false, cands:[''] });
+      xSaveSlots(); xRenderSlots();
+    };
+    wrap.appendChild(addSlot);
   }
 
-  function xUpdateCharLive(){
-    const len = $('xTplText').value.length;
-    const over = len > X_LIMIT;
-    $('xCharLive').innerHTML = `<span class="${over?'over':''}">${len} / ${X_LIMIT}文字${over?'（超過）':''}</span> ※変数展開前`;
+  function makeCandRow(slot, ci){
+    const row = document.createElement('div');
+    row.className = 'cand-row';
+    const inp = document.createElement('input');
+    inp.className = 'cand-input';
+    inp.value = slot.cands[ci] ?? '';
+    inp.placeholder = '候補を入力';
+    inp.addEventListener('input', () => { slot.cands[ci] = inp.value; xSaveSlots(); });
+    const del = document.createElement('button');
+    del.className = 'cand-del';
+    del.textContent = '✕';
+    del.onclick = () => {
+      slot.cands.splice(ci, 1);
+      xSaveSlots(); xRenderSlots();
+    };
+    row.appendChild(inp); row.appendChild(del);
+    return row;
   }
 
-  /* quick inserts */
-  const QUICK = [
-    { label:'改行', insert:'\n' },
-    { label:'#タグ', insert:'#' },
-    { label:'@メンション', insert:'@' },
-    { label:'{{buzz}}', insert:'{{buzz}}' },
-    { label:'🔥', insert:'🔥' },
-    { label:'✅', insert:'✅' },
-    { label:'👇', insert:'👇' },
-    { label:'→', insert:'→' },
-  ];
-  const qi = $('xQuickInserts');
-  QUICK.forEach(q => {
-    const b = document.createElement('button');
-    b.textContent = q.label;
-    b.onclick = () => insertAtCursor($('xTplText'), q.insert);
-    qi.appendChild(b);
-  });
-  function insertAtCursor(ta, text){
-    const s = ta.selectionStart ?? ta.value.length;
-    const e = ta.selectionEnd ?? ta.value.length;
-    ta.value = ta.value.slice(0,s) + text + ta.value.slice(e);
-    const pos = s + text.length;
-    ta.focus(); ta.setSelectionRange(pos, pos);
-    xRenderVars(); xUpdateCharLive();
+  function updateSlotCount(slotEl, s){
+    const c = slotEl.querySelector('.slot-count');
+    if (c) c.textContent = `${(s.cands||[]).filter(Boolean).length}個の候補`;
   }
 
-  $('xTplText').addEventListener('input', () => { xRenderVars(); xUpdateCharLive(); });
-
-  /* buzzwords */
   function xLoadBuzz(){ $('xBuzz').value = localStorage.getItem(X_BUZZ_KEY) || ''; }
   $('xBuzz').addEventListener('input', () => localStorage.setItem(X_BUZZ_KEY, $('xBuzz').value));
   function xBuzzList(){ return ($('xBuzz').value||'').split('\n').map(s=>s.trim()).filter(Boolean); }
@@ -826,32 +907,36 @@
   }
 
   function xGenerate({ shuffle=false } = {}){
-    const tpl = $('xTplText').value;
-    const vars = xExtractVars(tpl);
     const maxGen = Math.max(1, Math.min(200, parseInt($('xMaxGen').value||'20',10)));
     const dedupe = $('xDedupe').checked;
 
-    const candidates = {};
-    for (const v of vars){
-      candidates[v] = (xVarBank[v] || []).slice();
-    }
-    const missing = vars.filter(v => !candidates[v] || candidates[v].length === 0);
-    if (missing.length){
-      $('xStats').textContent = `未入力の変数があります：${missing.map(v=>`{{${v}}}`).join(', ')}`;
+    // オンになっていて、候補が1個以上あるパーツだけ使う（空候補は無視）
+    const active = xSlots
+      .map(s => ({ ...s, cands: (s.cands||[]).map(c=>(c||'').trim()).filter(Boolean) }))
+      .filter(s => s.on && s.cands.length > 0);
+
+    if (active.length === 0){
+      $('xStats').textContent = `使うパーツがありません。候補を入れて、パーツをオンにしてください`;
       xRenderOutput([]);
       return;
     }
 
-    const arrays = vars.map(v => candidates[v]);
-    let combos = vars.length ? cartesian(arrays) : [[]];
+    const arrays = active.map(s => s.cands);
+    const combos = cartesian(arrays);
+
     let posts = combos.map(choiceArr => {
-      let s = tpl;
-      vars.forEach((v,i) => {
-        const re = new RegExp('\\{\\{\\s*' + v.replace(/[.*+?^${}()|[\]\\]/g,'\\$&') + '\\s*\\}\\}','g');
-        s = s.replace(re, choiceArr[i]);
+      let out = '';
+      active.forEach((s, i) => {
+        let piece = choiceArr[i];
+        // ★バズ差込がオンなら、このパーツの後ろにバズワードをランダム付与
+        if (s.buzz) {
+          const bz = xBuzzRandom();
+          if (bz) piece = piece + bz;
+        }
+        // 区切り（最初のパーツは区切りなし）
+        out += (i === 0 ? '' : (s.join || '')) + piece;
       });
-      s = s.replace(/\{\{\s*buzz\s*\}\}/g, () => xBuzzRandom());
-      return s.trim();
+      return out.trim();
     });
 
     if (shuffle){
@@ -905,42 +990,13 @@
     catch(e){ const ta=document.createElement('textarea'); ta.value=all; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); toast('全部コピーしました'); }
   }
 
-  /* template CRUD */
-  $('xSaveTpl').onclick = () => {
-    const id = $('xTplSelect').value;
-    let t = xTemplates.find(x => x.id === id);
-    if (!t) return;
-    const name = prompt('テンプレ名（一覧表示用）', t.name);
-    if (name === null) return;
-    t.name = name.trim() || t.name;
-    t.text = $('xTplText').value;
-    xSaveTemplates(); xRefreshSelect(t.id); toast('テンプレを保存しました');
-  };
-  $('xNewTpl').onclick = () => {
-    const name = prompt('新規テンプレ名', '新しいテンプレ');
-    if (name === null) return;
-    const id = 't' + Math.random().toString(16).slice(2);
-    xTemplates.unshift({ id, name: name.trim()||'新しいテンプレ', text:`{{target}}へ。\n{{pain}}\n\n{{cta}}\n{{tag}}` });
-    xSaveTemplates(); xRefreshSelect(id); xLoadToEditor(id); toast('新規テンプレを作成しました');
-  };
-  $('xDelTpl').onclick = () => {
-    if (xTemplates.length <= 1){ toast('最後の1つは削除できません'); return; }
-    const id = $('xTplSelect').value;
-    const t = xTemplates.find(x => x.id === id);
-    if (!t) return;
-    if (!confirm(`テンプレ「${t.name}」を削除しますか？`)) return;
-    xTemplates = xTemplates.filter(x => x.id !== id);
-    xSaveTemplates(); xRefreshSelect(); xLoadToEditor($('xTplSelect').value); toast('削除しました');
-  };
-  $('xTplSelect').onchange = () => xLoadToEditor($('xTplSelect').value);
-
-  /* JSON import / export */
+  /* JSON import / export / reset */
   $('xExportBtn').onclick = () => {
-    const data = { templates: xTemplates, varBank: xVarBank };
+    const data = { slots: xSlots, buzz: $('xBuzz').value };
     const blob = new Blob([JSON.stringify(data, null, 2)], { type:'application/json' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    link.download = 'x_post_maker_backup.json';
+    link.download = 'x_post_backup.json';
     link.click();
     URL.revokeObjectURL(link.href);
     toast('JSONを書き出しました');
@@ -952,9 +1008,16 @@
     reader.onload = ev => {
       try {
         const data = JSON.parse(ev.target.result);
-        if (Array.isArray(data.templates) && data.templates.length) { xTemplates = data.templates; xSaveTemplates(); }
-        if (data.varBank && typeof data.varBank === 'object') { xVarBank = data.varBank; xSaveVarBank(); }
-        xRefreshSelect(); xLoadToEditor($('xTplSelect').value);
+        if (Array.isArray(data.slots) && data.slots.length) {
+          xSlots = data.slots; xSaveSlots();
+        } else if (data.varBank && typeof data.varBank === 'object') {
+          // 旧形式(varBank)も読めるように変換
+          xSlots = JSON.parse(JSON.stringify(xDefaultSlots));
+          xSlots.forEach(s => { const k = s.id.replace(/^s_/,''); if (Array.isArray(data.varBank[k])) s.cands = data.varBank[k]; });
+          xSaveSlots();
+        }
+        if (typeof data.buzz === 'string') { $('xBuzz').value = data.buzz; localStorage.setItem(X_BUZZ_KEY, data.buzz); }
+        xRenderSlots();
         toast('JSONを読み込みました');
       } catch(err) {
         toast('JSONの読み込みに失敗しました');
@@ -963,14 +1026,21 @@
     };
     reader.readAsText(f);
   };
+  $('xResetBtn').onclick = () => {
+    if (!confirm('パーツと候補を初期データ（関西エリオス）に戻しますか？')) return;
+    xSlots = JSON.parse(JSON.stringify(xDefaultSlots));
+    xSaveSlots();
+    xRenderSlots();
+    toast('初期データに戻しました');
+  };
 
   $('xGenBtn').onclick = () => xGenerate({ shuffle:false });
   $('xShuffleBtn').onclick = () => xGenerate({ shuffle:true });
   $('xCopyAllBtn').onclick = xCopyAll;
 
   /* init X */
-  xLoadTemplates(); xLoadVarBank(); xLoadBuzz();
-  xRefreshSelect(); xLoadToEditor($('xTplSelect').value);
+  xLoadSlots(); xLoadBuzz();
+  xRenderSlots();
 </script>
 </body>
 </html>
